@@ -72,3 +72,16 @@ If serviceAccount.name is specified, use that, else use the couchdb instance nam
 {{- template "couchdb.fullname" . -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+In the event that we create both a headless service and a traditional one,
+ensure that the latter gets a unique name.
+*/}}
+{{- define "couchdb.telemetrysvcname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- printf "%s-telemetry-%s" .Values.fullnameOverride .Chart.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- printf "%s-telemetry-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}

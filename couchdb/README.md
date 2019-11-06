@@ -106,6 +106,7 @@ CouchDB chart and their default values:
 | `persistentVolume.enabled`      | Boolean determining whether to attach a PV to each node | false
 | `persistentVolume.size`         | If enabled, the size of the persistent volume to attach                          | 10Gi
 | `enableSearch`                  | Adds a sidecar for Lucene-powered text search         | false                                  |
+| `telemetry.enabled`             | Adds a sidecar to expose CouchDB metrics to Prometheus| false                                  |
 
 A variety of other parameters are also configurable. See the comments in the
 `values.yaml` file for further details:
@@ -124,6 +125,9 @@ A variety of other parameters are also configurable. See the comments in the
 | `initImage.repository`            | busybox                                |
 | `initImage.tag`                   | latest                                 |
 | `initImage.pullPolicy`            | Always                                 |
+| `telemetryImage.repository`       | gesellix/couchdb-prometheus-exporter   |
+| `telemetryImage.tag`              | latest                                 |
+| `telemetryImage.pullPolicy`       | Always                                 |
 | `ingress.enabled`                 | false                                  |
 | `ingress.hosts`                   | chart-example.local                    |
 | `ingress.annotations`             |                                        |
@@ -145,6 +149,37 @@ A variety of other parameters are also configurable. See the comments in the
 | `serviceAccount.enabled`          | true                                   |
 | `serviceAccount.create`           | true                                   |
 | `serviceAccount.imagePullSecrets` |                                        |
+| `telemetry.databases`             |                                        |
+
+## Telemetry
+
+The chart optionally deploys the [CouchDB Prometheus exporter](https://github.com/gesellix/couchdb-prometheus-exporter) to each CouchDB node.
+Metrics are exposed on port 9984.
+
+Below is an example Prometheus scrape configuration that can be used to collect per-node CouchDB metrics:
+
+```
+- job_name: couchdb
+  scrape_interval: 10s
+  kubernetes_sd_configs:
+  - role: pod
+  relabel_configs:
+  - source_labels: [__meta_kubernetes_namespace]
+      action: replace
+      target_label: k8s_namespace
+  - source_labels: [__meta_kubernetes_pod_name]
+      action: replace
+      target_label: k8s_pod_name
+  - source_labels: [__address__]
+      action: replace
+      regex: ([^:]+)(?::\d+)?
+      replacement: ${1}:9984
+      target_label: __address__
+  - source_labels: [__meta_kubernetes_pod_label_app]
+      action: keep
+      regex: couchdb
+```
+
 
 ## Feedback, Issues, Contributing
 
