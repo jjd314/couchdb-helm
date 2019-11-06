@@ -18,8 +18,12 @@ lint:
 
 .PHONY: publish
 publish: lint
-	@helm package couchdb -d docs
-	@helm repo index docs --url https://apache.github.io/couchdb-helm
+	@mkdir -p temp_charts
+	@helm package -u -d temp_charts couchdb
+	@helm repo index --url https://apache.github.io/couchdb-helm --merge docs/index.yaml temp_charts
+	@mv temp_charts/*.tgz docs
+	@mv temp_charts/index.yaml docs/index.yaml
+	@rm -rf temp_charts
 
 # Run end to end tests using KinD
 .PHONY: test
