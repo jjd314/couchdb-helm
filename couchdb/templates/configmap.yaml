@@ -21,3 +21,12 @@ data:
   seedlistinifile: |
     [cluster]
     seedlist = {{ template "couchdb.seedlist" . }}
+
+  jwtinifile: |
+    [daemons]
+      couch_jwt_auth={couch_jwt_auth, start_link, []}
+    [jwt_auth]
+      hs_secret = JHVwZXIkZWNyZXQ=
+      rs_public_key_file = /etc/ssl/jwt/{{ .Values.jwtKey.publicKeyName }}
+      username_claim = sub
+      roles_claim = roles

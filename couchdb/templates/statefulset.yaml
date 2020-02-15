@@ -33,12 +33,14 @@ spec:
         - name: init-copy
           image: "{{ .Values.initImage.repository }}:{{ .Values.initImage.tag }}"
           imagePullPolicy: {{ .Values.initImage.pullPolicy }}
-          command: ['sh','-c','cp /tmp/chart.ini /default.d; cp /tmp/seedlist.ini /default.d; ls -lrt /default.d;']
+          command: ['sh','-c','cp /tmp/chart.ini /default.d; cp /tmp/seedlist.ini /default.d; cp /tmp/jwt_auth.ini /local.d; ls -lrt /default.d; ls -lrt /default.d;']
           volumeMounts:
           - name: config
             mountPath: /tmp/
           - name: config-storage
             mountPath: /default.d
+          - name: plugin-storage
+            mountPath: /local.d
       containers:
         - name: couchdb
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -112,8 +114,12 @@ spec:
           volumeMounts:
           - name: config-storage
             mountPath: /opt/couchdb/etc/default.d
+          - name: plugin-storage
+            mountPath: /opt/couchdb/etc/local.d
           - name: database-storage
             mountPath: /opt/couchdb/data
+          - name: jwt-key-volume
+            mountPath: /etc/ssl/jwt
 {{- if .Values.enableSearch }}
         - name: clouseau
           image: "{{ .Values.searchImage.repository }}:{{ .Values.searchImage.tag }}"
@@ -137,6 +143,8 @@ spec:
       volumes:
         - name: config-storage
           emptyDir: {}
+        - name: plugin-storage
+          emptyDir: {}
         - name: config
           configMap:
             name: {{ template "couchdb.fullname" . }}
@@ -145,7 +153,12 @@ spec:
                 path: chart.ini
               - key: seedlistinifile
                 path: seedlist.ini
+              - key: jwtinifile
+                path: jwt_auth.ini
 
+        - name: jwt-key-volume
+          secret:
+            secretName: {{ .Values.jwtKey.secretName }}
 {{- if not .Values.persistentVolume.enabled }}
         - name: database-storage
           emptyDir: {}

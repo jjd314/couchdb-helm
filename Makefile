@@ -18,12 +18,12 @@ lint:
 
 .PHONY: publish
 publish: lint
-	@mkdir -p new_charts
-	@helm package -u -d new_charts couchdb
-	@helm repo index --url "https://apache.github.io/couchdb-helm" --merge docs/index.yaml new_charts
-	@mv new_charts/couchdb*.tgz docs
-	@mv new_charts/index.yaml docs/index.yaml
-	@rm -rf new_charts
+	mkdir -p new_charts
+	helm package -u -d new_charts couchdb
+	helm repo index --url "https://epurchasepower-charts.storage.googleapis.com/couchdb-helm" --merge docs/index.yaml new_charts
+	mv new_charts/couchdb*.tgz docs
+	mv new_charts/index.yaml docs/index.yaml
+	rm -rf new_charts
 
 # Run end to end tests using KinD
 .PHONY: test
